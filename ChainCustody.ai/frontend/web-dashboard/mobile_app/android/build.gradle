@@ -1,0 +1,23 @@
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.buildDir = "../build"
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+// Force a stable NDK version
+ext {
+    ndkVersion = "28.0.13004108" // Use a stable NDK version
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}
