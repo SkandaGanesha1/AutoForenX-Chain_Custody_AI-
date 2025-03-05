@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import 'dashboard.dart';
+import 'package:flutter/services.dart';
+import 'package:local_auth/local_auth.dart';
+import 'officer_dashboard_screen.dart';
+import 'analyst_dashboard_screen.dart';
+import 'judge_dashboard_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -9,8 +13,51 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  bool _stayLoggedIn = false;
+  final LocalAuthentication _localAuth = LocalAuthentication();
   String _selectedRole = 'Officer';
+  bool _stayLoggedIn = false;
+  double _authStrength = 0.5; // Authentication strength indicator
+
+  Future<void> _authenticateWithBiometrics() async {
+    try {
+      bool authenticated = await _localAuth.authenticate(
+        localizedReason: 'Authenticate to access the system',
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+        ),
+      );
+      if (authenticated) {
+        setState(() {
+          _authStrength = 1.0; // Fully secure authentication
+        });
+        _navigateToDashboard();
+      }
+    } on PlatformException {
+      // Handle errors or fallback to password
+    }
+  }
+
+  void _navigateToDashboard() {
+    Widget screen;
+    switch (_selectedRole) {
+      case 'Officer':
+        screen = OfficerDashboardScreen();
+        break;
+      case 'Analyst':
+        screen = AnalystDashboardScreen();
+        break;
+      case 'Judge':
+        screen = JudgeDashboardScreen();
+        break;
+      default:
+        screen = OfficerDashboardScreen();
+    }
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => screen),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,25 +69,9 @@ class _AuthScreenState extends State<AuthScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 50),
-            // Circular AutoForenX Logo
-            Align(
-              alignment: Alignment.topLeft,
-              child: CircleAvatar(
-                radius: 40,
-                backgroundColor: Colors.white,
-                backgroundImage: AssetImage(
-                  'assets/logo.png',
-                ), // Your AutoForenX logo
-              ),
-            ),
-            const SizedBox(height: 20),
             const Text(
               "Welcome Back",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -72,45 +103,31 @@ class _AuthScreenState extends State<AuthScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      suffixIcon: Icon(Icons.visibility_off),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text("Select Role"),
-                      ToggleButtons(
-                        isSelected: [
-                          _selectedRole == 'Officer',
-                          _selectedRole == 'Analyst',
-                          _selectedRole == 'Judge',
-                        ],
-                        borderRadius: BorderRadius.circular(10),
-                        selectedColor: Colors.white,
-                        fillColor: Colors.blueAccent,
-                        children: const [
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12),
-                            child: Text("Officer"),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12),
-                            child: Text("Analyst"),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12),
-                            child: Text("Judge"),
-                          ),
-                        ],
-                        onPressed: (index) {
-                          setState(() {
-                            _selectedRole =
-                                ['Officer', 'Analyst', 'Judge'][index];
-                          });
-                        },
+                  DropdownButtonFormField<String>(
+                    value: _selectedRole,
+                    decoration: InputDecoration(
+                      labelText: "Select Role",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                    ],
+                    ),
+                    items:
+                        ['Officer', 'Analyst', 'Judge']
+                            .map(
+                              (role) => DropdownMenuItem(
+                                value: role,
+                                child: Text(role),
+                              ),
+                            )
+                            .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedRole = value!;
+                      });
+                    },
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -139,21 +156,11 @@ class _AuthScreenState extends State<AuthScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-
-                  // Sign In Button - Redirects to Dashboard
                   SizedBox(
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // Navigate to Dashboard on successful login
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => DashboardScreen(),
-                          ),
-                        );
-                      },
+                      onPressed: _navigateToDashboard,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blueAccent,
                         shape: RoundedRectangleBorder(
@@ -167,9 +174,8 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-
                   OutlinedButton.icon(
-                    onPressed: () {},
+                    onPressed: _authenticateWithBiometrics,
                     icon: const Icon(
                       Icons.fingerprint,
                       color: Colors.blueAccent,
@@ -184,6 +190,13 @@ class _AuthScreenState extends State<AuthScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 20),
+                  LinearProgressIndicator(
+                    value: _authStrength,
+                    backgroundColor: Colors.grey.shade300,
+                    color:
+                        _authStrength == 1.0 ? Colors.green : Colors.blueAccent,
                   ),
                 ],
               ),

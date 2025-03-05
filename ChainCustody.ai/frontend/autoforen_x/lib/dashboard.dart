@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:autoforen_x/evidence_collection.dart'; // Import Evidence Collection Page
+import 'package:autoforen_x/evidence_viewer.dart'; // Import Evidence Viewer Page
+import 'package:autoforen_x/notification_center_screen.dart'; // Import Notification Center Page
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -29,9 +32,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
         actions: [
+          // Notification Bell Icon (Navigates to Notification Center)
           IconButton(
             icon: Icon(Icons.notifications, color: Colors.white),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NotificationCenterScreen(),
+                ),
+              );
+            },
           ),
           IconButton(
             icon: Icon(Icons.brightness_6, color: Colors.white),
@@ -112,26 +123,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       SizedBox(height: 15),
                       Row(
                         children: [
+                          // Collect Evidence Button
                           ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => EvidenceCollectionScreen(),
+                                ),
+                              );
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.deepPurple,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: Text("View Evidence"),
+                            child: Text("Collect Evidence"),
                           ),
                           SizedBox(width: 10),
-                          OutlinedButton(
-                            onPressed: () {},
-                            style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: Colors.deepPurple),
+                          // View Evidence Button
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EvidenceViewerScreen(),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blueAccent,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: Text("Transfer"),
+                            child: Text("View Evidence"),
                           ),
                         ],
                       ),
@@ -192,7 +220,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               SizedBox(height: 20),
 
-              // System Alerts Section (Placeholder for now)
+              // System Alerts Section
               Text(
                 "System Alerts",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
